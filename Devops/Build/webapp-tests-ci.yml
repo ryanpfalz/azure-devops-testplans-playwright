@@ -1,0 +1,89 @@
+trigger:
+    - main
+
+pool:
+    vmImage: "windows-latest"
+
+variables:
+    buildConfiguration: "Release"
+
+steps:
+    - task: UseDotNet@2
+      inputs:
+          version: "6.x"
+          includePreviewVersions: true
+
+    - task: NuGetCommand@2
+      inputs:
+          restoreSolution: "WebApplication1/*.sln"
+
+    # restore project dependencies
+    - task: DotNetCoreCLI@2
+      displayName: "Restore project dependencies"
+      inputs:
+          command: "restore"
+          projects: "**/WebApplication1/WebApplication1.csproj"
+
+    # build web app
+    - task: DotNetCoreCLI@2
+      displayName: "dotnet build"
+      inputs:
+          command: "build"
+          arguments: "--configuration $(BuildConfiguration) -p:OutputPath=$(Build.BinariesDirectory)/WebApplication1"
+          projects: "**/WebApplication1/WebApplication1.csproj"
+
+    # run unit tests
+    # - task: DotNetCoreCLI@2
+    #   displayName: "Run Unit Tests"
+    #   inputs:
+    #       command: "test"
+    #       arguments: '--configuration $(buildConfiguration) --collect "XPlat Code Coverage"'
+    #       publishTestResults: true
+    #       projects: "**/UnitTests/*.csproj"
+
+    # publish code coverage results
+    # - task: PublishCodeCoverageResults@1
+    #   displayName: "Publish Code Coverage Report"
+    #   inputs:
+    #       codeCoverageTool: Cobertura
+    #       summaryFileLocation: "$(Agent.TempDirectory)/**/coverage.cobertura.xml"
+
+    # copy IaC files to artifact staging directory
+    # - task: CopyFiles@2
+    #   displayName: "Copy IaC Files"
+    #   inputs:
+    #       SourceFolder: Devops/Infrastructure
+    #       TargetFolder: "$(Build.ArtifactStagingDirectory)/Infrastructure"
+
+    # publish web app
+    - task: DotNetCoreCLI@2
+      displayName: "Publish web project"
+      inputs:
+          command: publish
+          publishWebProjects: False
+          projects: WebApplication1/WebApplication1/WebApplication1.csproj
+          arguments: "--configuration $(BuildConfiguration) -p:PublishDir=$(Build.BinariesDirectory)/WebApplication1"
+          zipAfterPublish: False
+
+    # copy web app to artifact staging directory
+    - task: ArchiveFiles@2
+      inputs:
+          rootFolderOrFile: "$(Build.BinariesDirectory)/WebApplication1"
+          archiveFile: "$(Build.ArtifactStagingDirectory)/WebApplication1.zip"
+          includeRootFolder: False
+
+    # publish playwright tests to artifact
+    - task: DotNetCoreCLI@2
+      displayName: "Publish PlaywrightTests project"
+      inputs:
+          command: publish
+          publishWebProjects: False
+          projects: WebApplication1/PlaywrightTests/PlaywrightTests.csproj
+          arguments: "--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)/PlaywrightTests/"
+          zipAfterPublish: False
+
+    # publish artifact
+    - task: PublishPipelineArtifact@1
+      inputs:
+          targetPath: "$(Build.ArtifactStagingDirectory)"
+          artifactName: "AzDO-Demo-Artifact"
