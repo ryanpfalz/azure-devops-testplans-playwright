@@ -10,13 +10,14 @@
 
 # Running end-to-end Playwright tests in Azure DevOps with Test Plans
 
-This sample codebase demonstrates how to 
+This sample codebase demonstrates how to set up and run automated Playwright tests in Azure DevOps using Test Plans against a web application running on App Service in Azure.
 <br>
 This example should be viewed as a foundation for modification and expansion into more complex applications.
 
 ## Prerequisites
 
 -   [An Azure Subscription](https://azure.microsoft.com/en-us/free/) - for hosting cloud infrastructure
+-   [Azure DevOps with Test Plans licensing](https://azure.microsoft.com/en-us/products/devops/test-plans) - for managing and running automated tests 
 -   [Az CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) - for deploying Azure infrastructure as code
 -   [.NET Core](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) - for web application and Playwright development
 
@@ -26,9 +27,14 @@ This example should be viewed as a foundation for modification and expansion int
 -   Run the script `Devops/Infrastructure/env.ps1`, passing in your desired resource names as parameters.
 -   This will create a [Resource Group](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/manage-resource-groups-cli#what-is-a-resource-group), [App Service Plan](https://learn.microsoft.com/en-us/azure/app-service/overview-hosting-plans), and [App Service](https://learn.microsoft.com/en-us/azure/app-service/overview).
 
-#### Web Application
 
 ### _*Setting up Playwright*_
+
+
+
+
+
+
 
 ### _*Setting up Azure DevOps*_
 
@@ -36,7 +42,17 @@ This example should be viewed as a foundation for modification and expansion int
 The `Devops/Build/webapp-tests-ci.yml` file builds the .NET Web Application in the repository and publishes the binaries to an artifact along with the Playwright tests.
 Learn about how to create a YAML build pipeline [here](https://learn.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline?view=azure-devops&tabs=java%2Ctfs-2018-2%2Cbrowser).
 
+
+
 #### _*Release Pipeline*_
+##### <b>Service Connection</b>
+Follow [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml) to create a service connection to your Azure subscription.
+
+##### <b>Release stages and tasks</b>
+
+
+##### <b>Web Application Deployment</b>
+Running the 'Deploy' stage of the Release pipeline will deploy the web application to the App Service.
 
 ### _*Executing Playwright Tests with Test Plans*_
 
@@ -57,4 +73,4 @@ Read more about "Why Playwright?" [here](https://playwright.dev/docs/why-playwri
 
 ## Additional Resources
 - [How to test web applications with Playwright and C# .NET - _blog_](https://www.twilio.com/blog/test-web-apps-with-playwright-and-csharp-dotnet)
-- [Run Playwright .NET tests in Azure DevOps pipelines](https://syrett.blog/how-to-run-playwright-net-tests-in-azure-devops-pipelines/)
+- [Run Playwright .NET tests in Azure DevOps pipelines - _blog_](https://syrett.blog/how-to-run-playwright-net-tests-in-azure-devops-pipelines/)
