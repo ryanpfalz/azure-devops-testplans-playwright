@@ -106,11 +106,14 @@ _Setup and execution steps for running Playwright tests._
 
 ### Executing Playwright Tests with Test Plans
 
-#### Create automated test associations
 Need to create test associations
+At this point, you should have the following:
+- A working build pipeline which publishes the web app and test binaries
+- An App Serivce resource in Azure
+- Release stages that publish the app code to Azure and execute tests linked to Test Plans
 
-Need to configure vstest in CD for 'test run'
-Need to launch from test plans UI
+To execute the Playwright tests with Test Plans, you first need to set up the test plan and associate the Playwright test to the test plan.
+
 
 #### Setting up the Test Plan, Suite, and Case
 
