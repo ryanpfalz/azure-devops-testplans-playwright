@@ -53,38 +53,62 @@ A sample test for this project was written in `WebApplication1/PlaywrightTests/W
 
 ### Setting up Azure DevOps
 
+Note that the build and release agents in this guide run on Windows OS.
+
 #### Build Pipeline
 
-The `Devops/Build/webapp-tests-ci.yml` file builds the .NET Web Application in the repository and publishes the binaries to an artifact along with the Playwright tests.
+The `Devops/Build/webapp-tests-ci.yml` file builds the .NET Web Application in the repository and publishes the DLL binaries to an artifact along with the Playwright tests. The publication of the test binaries is a critical step to enabling execution of the Playwright tests via Test Plans.
 Learn about how to create a YAML build pipeline [here](https://learn.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline?view=azure-devops&tabs=java%2Ctfs-2018-2%2Cbrowser).
-
-Note that the build agent in this guide runs on Windows OS.
 
 #### Release Pipeline
 
-Note that the release agent in this guide runs on Windows OS.
+-   In order to execute the automated Playwright tests via Test Plans, a Release pipeline needs to be set up so that it can be configured via Test Plan Settings. This release pipeline will also deploy the web application.
 
 ##### Service Connection
 
+A service connection needs to be created to enable release of the `WebApplication1` code to the App Service created above.
 Follow [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml) to create a service connection to your Azure subscription.
 
 ##### Release stages and tasks
 
--   #6 of https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#set-up-your-environment
--   Need to run bin/Debug/netX/playwright.ps1 install to ensure proper browsers are installed
+![Release Stages](./Docs/release_stages_tasks.png)
+_Example of a simple release pipeline with deployment and testing stages._
 
--   If running linked to test plans, need to choose 'test run', otherwise if running directly in CD, choose 'test assemblies' (https://stackoverflow.com/questions/56775384/invalid-on-demand-test-run-run-id-0-error-when-running-pipeline-test)
+##### _Pipeline trigger_
 
--   Variable replacement
+Set the pipeline trigger to be the artifact produced from the build pipeline. See [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/artifacts?view=azure-devops) to learn more.
 
-##### Web Application Deployment
+##### _Web Application Deployment Stage_
+
+Create a stage for deploying `WebApplication1` to the App Service created above using the service connection. In the above image, this stage is called 'Deploy'. [This guide](https://learn.microsoft.com/en-us/azure/app-service/deploy-azure-pipelines?tabs=classic#use-the-azure-web-app-task) describes how to use the Azure Web App task to deploy the solution to App Service.
+
+![App Service Deploy](./Docs/appservicedeploy.png)
+_Use the App Service Deploy task to release the app code to Azure._
 
 Running the 'Deploy' stage of the Release pipeline will deploy the web application to the App Service.
 
+##### _Test Execution Stage_
+
+![Test Execution Tasks](./Docs/testexecutionsteps.png)
+_Setup and execution steps for running Playwright tests._
+
+1.  The `WebApplication1/PlaywrightTests/appsettings.test.json` contains a `url` value which needs to be updated to point to the URL of the App Service deployed in the previous stage. Create a pipeline variable called 'url' and set the value to the URL of your app service.
+
+    ![App Settings Variable Replacement](./Docs/variables.png)
+
+2.  Just like was done to run Playwright tests on your local machine, you need to ensure proper browsers are installed for the framework. The file to execute was published in the build artifact along with the test binaries; in this example, you should execute the following command in the PowerShell task:
+
+    `$(System.DefaultWorkingDirectory)/_AzDO-Demo-Tests-CI/AzDO-Demo-Artifact/PlaywrightTests/PlaywrightTests/.playwright/node/win32_x64/playwright.cmd install`
+
+3.  Follow the steps under #6 in [this guide](https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#set-up-your-environment) to set up the VsTest task.
+    - To run tests linked to Test Plans, you need to choose 'Test run' as the 'Select tests using' option. Note that you will *not* be able to run this task directly in the Release Pipeline.
+    - Conversely, to run the test task directly in the Release Pipeline (*not* via Test Plans), choose 'Test assemblies' in the 'Select tests using' dropdown.
+
 ### Executing Playwright Tests with Test Plans
 
+#### Create automated test associations
 Need to create test associations
-Need to publish test binary dlls in CI
+
 Need to configure vstest in CD for 'test run'
 Need to launch from test plans UI
 
@@ -97,6 +121,7 @@ Associate test(s) with backlog tasks so results are reported back to boards
 ##### Defining an automated test
 
 -   In test plan settings: https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#set-up-your-environment
+-   Stage to run automated tests needs to be in a release pipeline.
 
 ##### Link a test in Visual Studio to a Test Plan
 
