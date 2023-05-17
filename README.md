@@ -106,7 +106,7 @@ _Setup and execution steps for running Playwright tests._
 
 ### Executing Playwright Tests with Test Plans
 
-At this point, you should have the following:
+At this point, you will have the following:
 
 -   A working build pipeline which generates an artifact with the web app and test binaries
 -   An App Serivce resource in Azure
@@ -116,17 +116,17 @@ To execute the Playwright tests with Test Plans, you now need to set up the test
 
 #### Setting up the Test Plan, Suite, and Case
 
-https://learn.microsoft.com/en-us/azure/devops/test/create-a-test-plan?view=azure-devops#create-a-test-plan
-
-Associate test(s) with backlog tasks so results are reported back to boards
+In order to execute tests, you must first create the test record in Test Plans. A test plan is made up of test suites, which are in turn made up of test cases. This hierarchy promotes organization of tests in a variety of ways; for example, a test plan may focus on a product or major module, a test suite may focus on more specific components that make up the product or module, and a test case may focus on an operation or set of steps that can be executed upon those components.
+[This guide](https://learn.microsoft.com/en-us/azure/devops/test/create-a-test-plan?view=azure-devops#create-a-test-plan) provides a comprehensive series of steps to create test plans, suites, and cases.
 
 ##### Defining an automated test
 
--   In test plan settings: https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#set-up-your-environment
--   Stage to run automated tests needs to be in a release pipeline.
+Once a test plan has been created, you can define where the automated tests associated to the test plan will be run. _Note that the environment to run automated tests is scoped to a stage of a release pipeline at the test plan level._
+[This guide](https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#set-up-your-environment) (steps 1-4) walks through how to link the release pipeline created above to the test plan.
 
 ##### Link a test in Visual Studio to a Test Plan
 
+Once you have [created a test case](https://learn.microsoft.com/en-us/azure/devops/test/create-test-cases?view=azure-devops) inside of your test plan + suite, you need to link your Playwright test to the test case, so that its automated completion can be reported back to the test case [and work item, if linked](#link-the-test-plan-to-a-work-item).
 -   Click all the way down to the test case
     https://learn.microsoft.com/en-us/azure/devops/test/associate-automated-test-with-test-case?view=azure-devops
 
@@ -137,7 +137,7 @@ Associate test(s) with backlog tasks so results are reported back to boards
 
 #### Link the test plan to a work item
 
-- A best practice when writing tests in Azure Test Plans is to link the tests to the feature/user story that the test is associated with. The completion of the test should serve as part of the acceptance criteria for the work item. Read more about this [here](https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-work-items-support-traceability?view=azure-devops&tabs=browser#test-work-item-links).
+-   A best practice when writing tests in Azure Test Plans is to link the tests to the feature/user story that the test is associated with. The completion of the test should serve as part of the acceptance criteria for the work item. Read more about this [here](https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-work-items-support-traceability?view=azure-devops&tabs=browser#test-work-item-links).
 
 ## Quality in the Development Lifecycle
 
