@@ -10,7 +10,7 @@
 
 # Running end-to-end Playwright tests in Azure DevOps with Test Plans
 
-This sample codebase demonstrates how to set up and run automated Playwright tests in Azure DevOps using Test Plans against a web application running on App Service in Azure.
+This sample codebase demonstrates how to set up and run automated Playwright tests integrated with Azure DevOps Test Plans against a web application running on App Service in Azure.
 <br>
 This example should be viewed as a foundation for modification and expansion into more complex applications.
 
@@ -31,11 +31,11 @@ This example should be viewed as a foundation for modification and expansion int
 
 ### Setting up Playwright project
 
-_The following is described in the Playwright documentation [here](https://playwright.dev/dotnet/docs/intro). The following commands are run in the command prompt (Windows)_
+_The following is described in greater detail in the Playwright documentation [here](https://playwright.dev/dotnet/docs/intro). The following commands are run in the command prompt (Windows)_.
 
 1. The `WebApplication1` directory contains a web project (`WebApplication1/WebApplication1`) and a testing project (`WebApplication1/PlaywrightTests`). The Playwright tests project was created as an NUnit project.
 
-2. To develop locally with Playwright, you need to install the library into the project by running:
+2. To develop locally with Playwright, you need to install the library into the project by running the following command in the project directory:
 
     `dotnet add package Microsoft.Playwright.Nunit`
 
@@ -43,22 +43,22 @@ _The following is described in the Playwright documentation [here](https://playw
 
     `pwsh bin/Debug/netX/playwright.ps1 install`
 
-A sample test for this project was written in `WebApplication1/PlaywrightTests/WebAppTest.cs`, which simply checks that clicking the privacy link in the web app navigates to the privacy page. To test this locally, start the webapp on a localhost port, _then_ run test in Visual Studio.
+A sample test for this project was written in `WebApplication1/PlaywrightTests/WebAppTest.cs`, which simply checks that clicking the privacy link in the web app navigates to the privacy page. To test this locally, start the webapp on a localhost port, _then_ run the test in Visual Studio.
 
 #### Test Settings & Configuration
 
--   This project contains `WebApplication1/PlaywrightTests/.runsettings`, which is a configuration file that can be modified to denote which browser should be used for testing, whether the browser should run in [headless mode](https://techoverflow.net/2019/05/17/what-is-a-headless-program-or-application/), if the execution steps should be slowed down (this makes it easier to watch the tests execute), and more.
+-   This project contains `WebApplication1/PlaywrightTests/.runsettings`, which is a Playwright configuration file that can be modified to denote which browser should be used for testing, whether the browser should run in [headless mode](https://learn.microsoft.com/en-us/azure/devops/pipelines/test/ui-testing-considerations?view=azure-devops&tabs=mstest#headless-mode-or-visible-ui-mode), if the execution steps should be slowed down (this makes it easier to watch the tests execute locally), and more.
 
--   This project also contains `WebApplication1/PlaywrightTests/appsettings.test.json`, which is used to denote the host URL of the web application being tested. This file sets the URL as localhost for testing but will be updated via variable substitution in the continuous deployment pipeline for testing against the live web application.
+-   This project also contains `WebApplication1/PlaywrightTests/appsettings.test.json`, which is a custom configuration file used to denote the host URL of the web application being tested. This file sets the URL as localhost for testing, but will be updated via variable substitution in the continuous deployment pipeline for testing against the live web application.
 
 ### Setting up Azure DevOps
 
-Note that the build and release pipelines in this guide use Microsoft-hosted agents that run on Windows OS. The below steps may vary slightly if you choose another OS or agent hosting option.
+_Note that the build and release pipelines in this guide use Microsoft-hosted agents that run on Windows OS. The below steps may vary slightly if you choose another OS or agent hosting option._
 
 #### Build Pipeline
 
-The `Devops/Build/webapp-tests-ci.yml` file builds the .NET Web Application in the repository and publishes the binaries to an artifact along with the Playwright test DLLs. The publication of the test binaries is a critical step to enabling execution of the Playwright tests via Test Plans.
-Learn more about how to create a YAML build pipeline [here](https://learn.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline?view=azure-devops&tabs=java%2Ctfs-2018-2%2Cbrowser).
+To begin the process of generating the artifacts to test, a build pipeline needs to be created. The `Devops/Build/webapp-tests-ci.yml` file is pipeline-as-code that builds the .NET Web Application in the repository and publishes the binaries to an artifact along with the Playwright test binaries as .dll files. The publication of the test binaries is a critical step to enabling execution of the Playwright tests via Test Plans.
+Learn more about how to publish a build pipeline in Azure DevOps using YAML [here](https://learn.microsoft.com/en-us/azure/devops/pipelines/create-first-pipeline?view=azure-devops&tabs=java%2Ctfs-2018-2%2Cbrowser).
 
 #### Release Pipeline
 
@@ -74,15 +74,16 @@ Follow [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/lib
 ![Release Stages](./Docs/release_stages_tasks.png)
 _Example of a simple release pipeline with deployment and testing stages._
 
-##### _Pipeline trigger_
+##### _Release pipeline trigger_
 
-Set the pipeline trigger to be the artifact produced from the build pipeline. See [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/artifacts?view=azure-devops) to learn more.
+Set the trigger of the release pipeline to be the artifact produced from the build pipeline. See [this guide](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/artifacts?view=azure-devops) to learn more.
 
 ##### _Web Application Deployment Stage_
 
 Create a stage for deploying `WebApplication1` to the App Service created above using the service connection. In the above image, this stage is called 'Deploy'. [This guide](https://learn.microsoft.com/en-us/azure/app-service/deploy-azure-pipelines?tabs=classic#use-the-azure-web-app-task) describes how to use the Azure Web App task to deploy the solution to App Service.
 
 ![App Service Deploy](./Docs/appservicedeploy.png)
+
 _Use the App Service Deploy task to release the app code to Azure._
 
 Running the 'Deploy' stage of the Release pipeline will deploy the web application to the App Service.
@@ -90,9 +91,10 @@ Running the 'Deploy' stage of the Release pipeline will deploy the web applicati
 ##### _Test Execution Stage_
 
 ![Test Execution Tasks](./Docs/testexecutionsteps.png)
+
 _Setup and execution steps for running Playwright tests._
 
-1.  <b>File Transform step:</b> The `WebApplication1/PlaywrightTests/appsettings.test.json` contains a `url` value which needs to be updated to point to the URL of the App Service deployed in the previous stage. Create a pipeline variable called 'url' and set the value to the URL of your app service.
+1.  <b>File Transform step:</b> The `WebApplication1/PlaywrightTests/appsettings.test.json` contains a `url` value which needs to be updated to point to the URL of the App Service deployed in the previous stage. Create a pipeline variable called 'url' and set the value to the URL of your app service. This can be found in the Azure Portal on the Overview tab of the App Service resource created above. If you're using a custom DNS, set that value as the 'url'.
 
     ![App Settings Variable Replacement](./Docs/variables.png)
 
@@ -131,14 +133,16 @@ Once you have [created a test case](https://learn.microsoft.com/en-us/azure/devo
 Follow [this guide](https://learn.microsoft.com/en-us/azure/devops/test/associate-automated-test-with-test-case?view=azure-devops) to associate a Playwright test case in Visual Studio with a test case in Azure DevOps.
 
 In the Visual Studio test explorer, make sure to drill all the way down to the test case:
+
 ![Test explorer](./Docs/associate-test-vs.png)
 
-Once you associate your Visual Studio test case in with your Test Plans test case, you'll be able to confirm the association by editing the test case in Test Plans and opening the 'Associated Automation' tab:
+Once you associate your Visual Studio test case with your Test Plans test case, you'll be able to confirm the association by editing the test case in Test Plans and opening the 'Associated Automation' tab:
+
 ![Associated Automation](./Docs/associates-automation-azdo.png)
 
 #### Link the test plan to a work item
 
-A best practice when writing tests in Azure Test Plans is to link the tests to the feature/user story that the test is associated with. The completion of the test should serve as part of the acceptance criteria for the work item. Read more about this [here](https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-work-items-support-traceability?view=azure-devops&tabs=browser#test-work-item-links).
+A best practice when writing tests in Azure Test Plans is to link the tests to the feature/user story that the test is associated with. Read more about this [here](https://learn.microsoft.com/en-us/azure/devops/boards/queries/link-work-items-support-traceability?view=azure-devops&tabs=browser#test-work-item-links).
 
 #### Running the test
 
@@ -148,16 +152,19 @@ A best practice when writing tests in Azure Test Plans is to link the tests to t
     -   Build pipeline producing test artifacts
     -   Release pipeline deploying app code and configured to run tests
     -   A test plan, suite, and case(s) defined
-    -   Automated tests linked to your test case(s)
+    -   Automated test(s) linked to your test case(s)
 -   In Test Plans, [run your test](https://learn.microsoft.com/en-us/azure/devops/test/run-automated-tests-from-test-hub?view=azure-devops#run-the-automated-tests) by choosing _Run for web application_:
+
     ![Run Test](./Docs/run-for-web-application.png)
+
+You will be able to track the execution progress and outcomes in the Test Plans interface.
 
 ## Quality in the Development Lifecycle
 
 ![Continuous Quality Development Cycle](./Docs/ContinuousQuality.png)
 Test automation is a critical aspect of software development that can help improve the speed and quality of testing. Automated tests can be run quickly and frequently; however, test automation is only a small part of the continuous quality cycle. Continuous quality involves a holistic approach to quality assurance that also includes manual testing, code reviews, vulnerability checks, and several other quality checks throughout the development process. By combining these different approaches, teams can ensure that software is not only functional, but also reliable, maintainable, and user-friendly.
 
-The diagram above shows an example of where in the development lifecycle test automation with Playwright via Test Plans could be created and executed: The tests may be written during feature development and then run on the QA environment.
+The diagram above shows an example of where in the development lifecycle test automation with Playwright via Test Plans could be created and executed: The tests may be written during feature development and then run on the QA environment. Alternatively, teams may also opt to wait for the UI to be stable before writing their functional tests.
 
 ## Potential Use Cases
 
